@@ -80,7 +80,7 @@ let fileNative = {};
 let fileTranslated = {};
 
 const searchBar = document.querySelector('#input-search');
-const clearSeachBtn = document.querySelector('#clear-search');
+const clearSearchBtn = document.querySelector('#clear-search');
 
 const filterEmpty = document.querySelector('#filter-empty');
 const filterBookmarked = document.querySelector('#filter-bookmark');
@@ -93,6 +93,15 @@ const statsFields = {
     empty_perc: document.querySelector('#percent-empty'),
     bookmarked: document.querySelector('#stats-bookmarked'),
     bookmarked_perc: document.querySelector('#percent-bookmarked'),
+}
+
+const findAndReplace = {
+    pattern: document.querySelector('#replace-search'),
+    replace: document.querySelector('#replace-replace'),
+    regex: document.querySelector('#replace-regex'),
+    findBtn: document.querySelector('#find-next'),
+    replaceBtn: document.querySelector('#replace'),
+    replaceAllBtn: document.querySelector('#replace-all'),
 }
 
 const downloadCodeBtn = document.querySelector('#download-code');
@@ -120,22 +129,27 @@ clearUploadsBtn. addEventListener('click', () => {
 // search bar content clear button
 searchBar.addEventListener('input', () => {
     if (searchBar.value) {
-        clearSeachBtn.classList.remove('softhidden');
-        clearSeachBtn.tabindex = 0;
+        clearSearchBtn.classList.remove('softhidden');
+        clearSearchBtn.tabindex = 0;
         findOnPage(searchBar.value, document.querySelector('#entry-table tbody'));
     }
     else {
-        clearSeachBtn.classList.add('softhidden');
-        clearSeachBtn.tabindex = -1;
+        clearSearchBtn.classList.add('softhidden');
+        clearSearchBtn.tabindex = -1;
     }
 });
-clearSeachBtn.addEventListener('click', () => {
+clearSearchBtn.addEventListener('click', () => {
     searchBar.value = "";
 });
 
 // filter checkboxes
 filterEmpty.addEventListener('change', filterEmptyFields);
 filterBookmarked.addEventListener('change', filterBookmarkedFields);
+
+//find and replace
+findAndReplace.findBtn.addEventListener('click', () => {
+
+});
 
 // output buttons
 downloadCodeBtn.addEventListener('click', downloadCode);
@@ -215,6 +229,9 @@ function constructEntryTable(arr) {
         span3.addEventListener('input', () => {
             updateInputState(i+1);
             updateStats('filled');
+        });
+        span3.addEventListener('focus', () => {
+            this.setSelectionRange(0, this.innerHTML.length);
         });
         span3.innerHTML = val[2] ?? '';
         td3.appendChild(span3);

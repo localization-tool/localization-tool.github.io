@@ -315,7 +315,7 @@ function updateInputState(index) {
     }
 }
 function updateInputStateOnLoad() {
-    let lastID = document.querySelector('#entry-table tbody tr:last-child :first-child')?.innerHTML ?? tableArray.length;
+    let lastID = document.querySelector('#entry-table tbody tr:last-child :first-child')?.innerHTML;
     for (let i = 1; i <= lastID; i++) {
         setTimeout(() => {
             updateInputState(i);

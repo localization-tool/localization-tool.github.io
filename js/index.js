@@ -231,7 +231,19 @@ function constructEntryTable(arr) {
             updateStats('filled');
         });
         span3.addEventListener('focus', () => {
-            this.setSelectionRange(0, this.innerHTML.length);
+            let range, selection;
+        
+            if (window.getSelection && document.createRange) {
+                selection = window.getSelection();
+                range = document.createRange();
+                range.selectNodeContents(this);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            } else if (document.selection && document.body.createTextRange) {
+                range = document.body.createTextRange();
+                range.moveToElementText(this);
+                range.select();
+            }
         });
         span3.innerHTML = val[2] ?? '';
         td3.appendChild(span3);
@@ -409,7 +421,19 @@ function addELToTableItems() {
             updateStats('filled');
         });
         row.querySelector('.textarea').addEventListener('focus', () => {
-            this.setSelectionRange(0, this.innerHTML.length);
+            let range, selection;
+        
+            if (window.getSelection && document.createRange) {
+                selection = window.getSelection();
+                range = document.createRange();
+                range.selectNodeContents(this);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            } else if (document.selection && document.body.createTextRange) {
+                range = document.body.createTextRange();
+                range.moveToElementText(this);
+                range.select();
+            }
         });
         row.querySelector('.set-to-filled'). addEventListener('change', () => {
             markAsFilled(i+1);

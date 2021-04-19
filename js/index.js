@@ -353,9 +353,11 @@ function loadFromLocalStorage() {
     let tbody = document.querySelector('#entry-table tbody');
     try {
         tbody.innerHTML = localStorage.getItem('tableBackup');
-        setTimeout(() => {
-            updateInputStateOnLoad();
-        }, 100);
+        if (localStorage.getItem('tableBackup'))  {
+            setTimeout(() => {
+                updateInputStateOnLoad();
+            }, 100);
+        }
     } catch (error) {
         console.error(error);
     }

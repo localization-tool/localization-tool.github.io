@@ -367,7 +367,6 @@ function updateStats(type) {
         statsFields.filled.innerHTML = filled.length + markedFilled.length;
         statsFields.empty.innerHTML = empty.length;
         let total = Number(statsFields.total.textContent);
-        console.log(filled.length + markedFilled.length, total);
         statsFields.filled_perc.innerHTML = ((filled.length + markedFilled.length) / total * 100).round(2) + '%';
         statsFields.empty_perc.innerHTML = (empty.length / total * 100).round(2) + '%';
     }
@@ -421,19 +420,10 @@ function addELToTableItems() {
             updateStats('filled');
         });
         row.querySelector('.textarea').addEventListener('focus', () => {
-            let range, selection;
-        
-            if (window.getSelection && document.createRange) {
-                selection = window.getSelection();
-                range = document.createRange();
-                range.selectNodeContents(this);
-                selection.removeAllRanges();
-                selection.addRange(range);
-            } else if (document.selection && document.body.createTextRange) {
-                range = document.body.createTextRange();
-                range.moveToElementText(this);
-                range.select();
-            }
+            let range;
+            range = document.body.createTextRange();
+            range.moveToElementText(this);
+            range.select();
         });
         row.querySelector('.set-to-filled'). addEventListener('change', () => {
             markAsFilled(i+1);

@@ -522,7 +522,7 @@ function findOnPage(text, scope = document.body, searchNth = false) {
             scope.innerHTML = innerHTML.replace(new RegExp(text), '<span class="search-result">$&</span>')
         }
         else {
-            scope.innerHTML = innerHTML.replace(new RegExp(`(?<=(?:(`+text+`)(?:\n|.)*?){`+n+`})\1`), '<span class="search-result">$&</span>')
+            scope.innerHTML = innerHTML.replace(new RegExp("(?<=(?:("+text+")(?:\n|.)*?){"+n+"})\1"), '<span class="search-result">$&</span>')
         }
         n++;
     }

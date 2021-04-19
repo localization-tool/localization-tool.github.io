@@ -167,12 +167,12 @@ function loadFileTranslated(event) {
     fileTranslated = JSON.parse(event.target.result);
 }
 
+let tableArray = [];
 function loadDataToTable() {
     if (!fileNative) {
         new Toast({message: 'No original language file uploaded!', type: 'error'}).show(5000);
         return;
     }
-    let tableArray = [];
 
     let keys = Object.keys(fileNative);
     for (let i = 0; i < keys.length; i++) {

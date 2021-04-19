@@ -408,6 +408,9 @@ function addELToTableItems() {
             updateInputState(i+1);
             updateStats('filled');
         });
+        row.querySelector('.textarea').addEventListener('focus', () => {
+            this.setSelectionRange(0, this.innerHTML.length);
+        });
         row.querySelector('.set-to-filled'). addEventListener('change', () => {
             markAsFilled(i+1);
             let checkbox = document.querySelector('#set-to-filled'+(i+1));

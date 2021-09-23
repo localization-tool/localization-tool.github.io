@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Localization Tool</title>
+
+    <link rel="stylesheet" href="./css/styles.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="module" src="./js/index.js"></script>
+</head>
+<body>
+    <main>
+        <section class="uploads">
+            <div class="uploads-wrapper">
+                <h1 class="center">Upload Files</h1>
+                <div class="content">
+                    <div>
+                        <label for="upload-native">Original language file</label>
+                        <input type="file" id="upload-native">
+                    </div>
+                    <div>
+                        <label for="upload-translated">Partially translated file<span>only if applicable</span></label>
+                        <input type="file" id="upload-translated">
+                    </div>
+                </div>
+                <div class="supported-types">
+                    <h4>Supported file types</h4>
+                    <ul>
+                        <li><code>.json</code></li>
+                        <li><code>.lang</code></li>
+                    </ul>
+                </div>
+                <div class="buttons">
+                    <button class="generic-container button-general" id="clear-uploads">Clear Files</button>
+                    <button class="generic-container button-general green" id="load-uploads">Load</button>
+                </div>
+            </div>
+        </section>
+        <section class="shortcuts">
+            <table>
+                <tbody>
+                    <tr>
+                        <td>
+                            Mark row as filled:
+                        </td>
+                        <td>
+                            <kbd>Ctrl</kbd>+<kbd>S</kbd>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Copy value from original to translation:
+                        </td>
+                        <td>
+                            <kbd>Ctrl</kbd>+<kbd>D</kbd>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="results">
+            <table class="results-table">
+                <thead>
+                    <th>No.</th>
+                    <th>Original</th>
+                    <th colspan=2>Translation</th>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+        <section class="toolbar">
+            <div class="goto">
+                <span>Go to row</span>
+                <input id="go-to" class="generic-container input-general" regex="int positive" type="text">
+                <button id="go-to-btn" class="generic-container button-general small green">Go</button>
+            </div>
+            <hr>
+            <div class="stats">
+                <table>
+                    <thead>
+                        <tr>
+                            <th colspan=2>Stats</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="row-total">
+                            <td class="label">Total</td>
+                            <td class="data">
+                                <b id="stats-total">0</b>
+                            </td>
+                        </tr>
+                        <tr class="row-filled">
+                            <td class="label">Filled</td>
+                            <td class="data">
+                                <b id="stats-filled">0</b>
+                                <span id="percent-filled">0%</span>
+                            </td>
+                        </tr>
+                        <tr class="row-empty">
+                            <td class="label">Empty</td>
+                            <td class="data">
+                                <b id="stats-empty">0</b>
+                                <span id="percent-empty">0%</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <hr>
+            <div class="downloads">
+                <button id="download-json" class="generic-container button-general">Download JSON</button>
+                <button id="dropdown-toggle" class="generic-container button-general"><i class="fas fa-caret-down"></i></button>
+                <div class="dropdown-menu">
+                    <button id="download-copy-json">Copy JSON</button>
+                    <button id="download-copy-lang">Copy LANG</button>
+                    <button id="download-lang">Download LANG</button>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

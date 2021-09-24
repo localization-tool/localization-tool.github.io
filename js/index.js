@@ -63,6 +63,14 @@ $('[regex~="positive"]').on('input', function(e) {
 //! ==============================================================
 //!         processing uploaded file
 //! ==============================================================
+let nativeEntries = [];
+let nativeEntriesMap = new Map();
+let translatedEntries = [];
+let translatedEntriesMap = new Map();
+let resultMap = new Map();
+let tableEntryRows = [];
+let totalCount = 0;
+let completedCount = 0;
 function loadObjectEntriesJSON(loadTo, loadToMap, lines) {
     //clear objects from old values
     loadTo.splice(0, loadTo.length);
@@ -89,6 +97,7 @@ function loadObjectEntriesJSON(loadTo, loadToMap, lines) {
         if (loadToMap.get(key)) console.warn(`Duplicated entry: "${key}" in line ${i}.`);
         loadTo.push({ type: "ENTRY", key, value });
         loadToMap.set(key, { value, completed: false });
+        resultMap = new Map([ ...nativeEntriesMap, ...translatedEntriesMap ]);
     }
 }
 function loadObjectEntriesLANG(loadTo, loadToMap, lines) {
@@ -121,19 +130,12 @@ function loadObjectEntriesLANG(loadTo, loadToMap, lines) {
         if (loadToMap.get(key)) console.warn(`Duplicated entry: "${key}" in line ${i}.`);
         loadTo.push({ type: "ENTRY", key, value });
         loadToMap.set(key, { value, completed: false });
+        resultMap = new Map([ ...nativeEntriesMap, ...translatedEntriesMap ]);
     }
 }
 function checkFileExtension(file) {
     return file.name.match(/\.([^ \.]+)$/)?.[1];
-} 
-let nativeEntries = [];
-let nativeEntriesMap = new Map();
-let translatedEntries = [];
-let translatedEntriesMap = new Map();
-let resultMap = new Map();
-let tableEntryRows = [];
-let totalCount = 0;
-let completedCount = 0;
+}
 //! native entries
 $('#upload-native').change(function(e) {
     const reader = new FileReader();
@@ -149,7 +151,6 @@ $('#upload-native').change(function(e) {
         else if (fileExtension == 'lang') {
             loadObjectEntriesLANG(nativeEntries, nativeEntriesMap, lines);
         }
-        resultMap = new Map([ ...nativeEntriesMap, ...translatedEntriesMap ]);
     }
     reader.readAsText(e.target.files[0]);
 });
@@ -168,15 +169,15 @@ $('#upload-translated').change(function(e) {
         else if (fileExtension == 'lang') {
             loadObjectEntriesLANG(translatedEntries, translatedEntriesMap, lines);
         }
-        resultMap = new Map([ ...nativeEntriesMap, ...translatedEntriesMap ]);
     }
     reader.readAsText(e.target.files[0]);
 });
 //! load button
 function loadTable() {
+    $('section.shortcuts, section.results, section.toolbar').removeClass('hidden');
     //tell which entries are completed
     resultMap.forEach((value, key) => {
-        if (value.value != nativeEntriesMap.get(key).value) {
+        if (nativeEntriesMap.get(key) && value.value != nativeEntriesMap.get(key).value) {
             resultMap.set(key, {
                 value: value.value,
                 completed: true,
@@ -293,17 +294,17 @@ class EntryRow extends TableRow {
         }
         markFilledButton.click(markAsFilledButtonFunctionality);
         //! textarea check if is filled
-        textarea.on('input', function() {
+        textarea.on('blur', function() {
             if (
-                !textarea.hasClass('filled')
-                && textarea.val().trim()
+                textarea.val().trim()
                 && valueOriginal != textarea.val()
             ) {
                 textarea.addClass('filled');
-                return;
             }
-            textarea.removeClass('filled');
         });
+        textarea.on('input', function() {
+            textarea.removeClass('filled');
+        })
         //! textarea bind keyboard shortcuts
         const globalThis = this;
         textarea.keydown(function(e) {

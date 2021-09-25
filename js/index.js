@@ -97,8 +97,8 @@ function loadObjectEntriesJSON(loadTo, loadToMap, lines) {
         if (loadToMap.get(key)) console.warn(`Duplicated entry: "${key}" in line ${i}.`);
         loadTo.push({ type: "ENTRY", key, value });
         loadToMap.set(key, { value, completed: false });
-        resultMap = new Map([ ...nativeEntriesMap, ...translatedEntriesMap ]);
     }
+    resultMap = new Map([ ...nativeEntriesMap, ...translatedEntriesMap ]);
 }
 function loadObjectEntriesLANG(loadTo, loadToMap, lines) {
     //clear objects from old values
@@ -130,8 +130,8 @@ function loadObjectEntriesLANG(loadTo, loadToMap, lines) {
         if (loadToMap.get(key)) console.warn(`Duplicated entry: "${key}" in line ${i}.`);
         loadTo.push({ type: "ENTRY", key, value });
         loadToMap.set(key, { value, completed: false });
-        resultMap = new Map([ ...nativeEntriesMap, ...translatedEntriesMap ]);
     }
+    resultMap = new Map([ ...nativeEntriesMap, ...translatedEntriesMap ]);
 }
 function checkFileExtension(file) {
     return file.name.match(/\.([^ \.]+)$/)?.[1];

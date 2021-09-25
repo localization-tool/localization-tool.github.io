@@ -71,39 +71,34 @@ let resultMap = new Map();
 let tableEntryRows = [];
 let totalCount = 0;
 let completedCount = 0;
-function loadObjectEntriesJSON(loadTo, loadToMap, lines) {
-    //clear objects from old values
-    loadTo.splice(0, loadTo.length);
-    loadToMap.clear();
-    //process lines
-    let i = -1;
-    for (const line of lines) {
-        i++;
-        //line is a space
-        if (!line.trim()) {
-            let lastEntryType = Array.last(loadTo).type
-            if (lastEntryType == "SPACE" || lastEntryType == "COMMENT") continue;
-            loadTo.push({ type: "SPACE" });
-        }
-        let match = line.match(/"(.+?)":\s*"(.*)"/);
-        if (!match) continue;
-        let [_, key, value] = match;
-        //line is a comment
-        if (key.startsWith('_')) {
-            loadTo.push({ type: "COMMENT", value });
-            continue;
-        }
-        //line is an entry
-        if (loadToMap.get(key)) console.warn(`Duplicated entry: "${key}" in line ${i}.`);
-        loadTo.push({ type: "ENTRY", key, value });
-        loadToMap.set(key, { value, completed: false });
-    }
-    resultMap = new Map([ ...nativeEntriesMap, ...translatedEntriesMap ]);
+
+let extensionSettings = {
+    json: {
+        input: {
+            comment: /"_.*?":\s*"(.*)"/,
+            entry: /"(.+?)":\s*"(.*)"/,
+        },
+    },
+    jsonc: {
+        input: {
+            comment: /"_.*?":\s*"(.*)"/,
+            comment2: /^\s*\/\/\s*(.+)/,
+            entry: /"(.+?)":\s*"(.*)"/,
+        },
+    },
+    lang: {
+        input: {
+            comment: /^#\s*(.+)/,
+            entry: /^\s*(.+?)=(.*)$/,
+        },
+    },
 }
-function loadObjectEntriesLANG(loadTo, loadToMap, lines) {
+function loadObjectEntries(extension, loadTo, loadToMap, lines) {
     //clear objects from old values
     loadTo.splice(0, loadTo.length);
     loadToMap.clear();
+    //get resources for extension
+    let currentSettings = extensionSettings[extension];
     //process lines
     let i = -1;
     for (const line of lines) {
@@ -116,15 +111,15 @@ function loadObjectEntriesLANG(loadTo, loadToMap, lines) {
             continue;
         }
         //line is a comment
-        if (line.match(/^#\s*(.+)/)) {
-            let value = line.match(/^#\s*(.+)/)[1];
+        if (line.match(currentSettings.input.comment) || line.match(currentSettings.input.comment2)) {
+            let value = line.match(currentSettings.input.comment)?.[1] ?? line.match(currentSettings.input.comment2)[1];
             let lastEntryType = Array.last(loadTo).type;
             if (lastEntryType != "SPACE") loadTo.push({ type: "SPACE" });
             loadTo.push({ type: "COMMENT", value });
             continue;
         }
         //line is an entry
-        let match = line.match(/^\s*(.+?)=(.*)$/);
+        let match = line.match(currentSettings.input.entry);
         if (!match) continue;
         let [_, key, value] = match;
         if (loadToMap.get(key)) console.warn(`Duplicated entry: "${key}" in line ${i}.`);
@@ -133,6 +128,8 @@ function loadObjectEntriesLANG(loadTo, loadToMap, lines) {
     }
     resultMap = new Map([ ...nativeEntriesMap, ...translatedEntriesMap ]);
 }
+
+
 function checkFileExtension(file) {
     return file.name.match(/\.([^ \.]+)$/)?.[1];
 }
@@ -146,10 +143,13 @@ $('#upload-native').change(function(e) {
         nativeEntries.splice(0, nativeEntries.length);
         nativeEntriesMap.clear();
         if (fileExtension == 'json') {
-            loadObjectEntriesJSON(nativeEntries, nativeEntriesMap, lines);
+            loadObjectEntries('json', nativeEntries, nativeEntriesMap, lines);
+        }
+        else if (fileExtension == 'jsonc') {
+            loadObjectEntries('jsonc', nativeEntries, nativeEntriesMap, lines);
         }
         else if (fileExtension == 'lang') {
-            loadObjectEntriesLANG(nativeEntries, nativeEntriesMap, lines);
+            loadObjectEntries('lang', nativeEntries, nativeEntriesMap, lines);
         }
     }
     reader.readAsText(e.target.files[0]);

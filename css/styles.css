@@ -259,7 +259,12 @@ section.results {
 }
 .results-table .entry-row {
     height: max-content;
-    border-top: 1px solid var(--acc);
+    border: 1px solid var(--acc);
+    border-left-width: 2px;
+    border-right-width: 2px;
+}
+.results-table .entry-row:focus-within {
+    background: #222;
 }
 /*! numbers */
 .results-table .entry-num {
@@ -285,6 +290,7 @@ section.results {
 /*! input column */
 .results-table .entry-input {
     padding: 0.3rem 0.4rem 0.3rem 0;
+    width: 50%;
 }
 .results-table .entry-input textarea {
     width: 100%;
@@ -292,7 +298,8 @@ section.results {
     border: 1px solid var(--acc);
     border-radius: 4px;
     padding: 0.1rem 0.2rem;
-    min-width: 500px;
+    min-width: 300px;
+    width: 100%;
     background: rgba(255,255,255,0.02);
     color: var(--text);
     font-family: Arial, Helvetica, sans-serif;

@@ -61,6 +61,18 @@ $('[regex~="positive"]').on('input', function(e) {
 });
 
 //! ==============================================================
+//!         auto-scroll
+//! ==============================================================
+function autoScroll(e) {
+    let $this = $(this);
+    let bottomY = $this.offset().top + $this.outerHeight(true);
+    let screenBottomY = window.scrollY + window.innerHeight;
+    if (bottomY + $this.outerHeight(true) >= screenBottomY) {
+        window.scrollTo(0, bottomY-window.innerHeight+200);
+    }
+}
+
+//! ==============================================================
 //!         processing uploaded file
 //! ==============================================================
 let nativeEntries = [];
@@ -70,7 +82,6 @@ let translatedEntriesMap = new Map();
 let resultMap = new Map();
 let tableEntryRows = [];
 let totalCount = 0;
-let completedCount = 0;
 
 let extensionSettings = {
     json: {
@@ -105,15 +116,15 @@ function loadObjectEntries(extension, loadTo, loadToMap, lines) {
         i++;
         //line is a space
         if (!line.trim()) {
-            let lastEntryType = Array.last(loadTo).type;
+            let lastEntryType = Array.last(loadTo)?.type;
             if (lastEntryType == "SPACE" || lastEntryType == "COMMENT") continue;
             loadTo.push({ type: "SPACE" });
             continue;
         }
         //line is a comment
-        if (line.match(currentSettings.input.comment) || line.match(currentSettings.input.comment2)) {
+        if (line.match(currentSettings.input.comment) || (currentSettings.input.comment2 && line.match(currentSettings.input.comment2))) {
             let value = line.match(currentSettings.input.comment)?.[1] ?? line.match(currentSettings.input.comment2)[1];
-            let lastEntryType = Array.last(loadTo).type;
+            let lastEntryType = Array.last(loadTo)?.type;
             if (lastEntryType != "SPACE") loadTo.push({ type: "SPACE" });
             loadTo.push({ type: "COMMENT", value });
             continue;
@@ -172,10 +183,7 @@ $('#upload-translated').change(function(e) {
     }
     reader.readAsText(e.target.files[0]);
 });
-//! load button
-function loadTable() {
-    $('section.shortcuts, section.results, section.toolbar').removeClass('hidden');
-    //tell which entries are completed
+function determineIfCompleted() {
     resultMap.forEach((value, key) => {
         if (nativeEntriesMap.get(key) && value.value != nativeEntriesMap.get(key).value) {
             resultMap.set(key, {
@@ -184,7 +192,11 @@ function loadTable() {
                 markedFilled: value.markedFilled,
             });
         }
-    })
+    });
+}
+//! load button
+function loadTable() {
+    $('section.shortcuts, section.results, section.toolbar').removeClass('hidden');
     //construct the table
     let table = $('.results-table');
     table.find('tbody').html(null);
@@ -200,24 +212,28 @@ function loadTable() {
                     break;
                 case 'ENTRY':
                     let completed = resultMap.get(entry.key).completed;
+                    let markedFilled = resultMap.get(entry.key).markedFilled;
                     new EntryRow({
                         num: i++,
                         index,
                         key: entry.key,
                         valueOriginal: entry.value,
-                        value: completed ? resultMap.get(entry.key).value : '',
+                        value: (completed || markedFilled) ? resultMap.get(entry.key).value : '',
                         completed,
-                        markedFilled: resultMap.get(entry.key).markedFilled,
+                        markedFilled,
                     }).addToTable(table);
                     totalCount++;
-                    if (completed) completedCount++;
                     break;
             }
         }, 0);
     });
+    setTimeout(() => {
+        updateStats();
+    }, 10);
 }
 $('#load-uploads').click(function() {
     if (!$('#upload-native').val()) return;
+    determineIfCompleted();
     loadTable();
     clearUploads();
     saveAllToLocalStorage();
@@ -263,7 +279,7 @@ class EntryRow extends TableRow {
         //! append elements ======================================
         this.append(`<td class="entry-num">${num}</td>`);
         this.append(`<td class="entry-original">
-            <span>${valueOriginal}</span>
+            <span>${valueOriginal.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')}</span>
             <code>${key.replace(/\./g, '.&#8203;')}</code>
         </td>`);
         this.append(`<td class="entry-input">
@@ -278,7 +294,10 @@ class EntryRow extends TableRow {
         let markFilledButton = this.find('.mark-as-filled')
         //! is completed?
         if (completed) textarea.addClass('filled');
-        if (markedFilled) textarea.addClass('marked-filled');
+        if (markedFilled) {
+            textarea.addClass('marked-filled');
+            markFilledButton.addClass('active');
+        }
         //! mark as filled button
         function markAsFilledButtonFunctionality() {
             textarea.toggleClass('marked-filled');
@@ -286,13 +305,13 @@ class EntryRow extends TableRow {
             let oldValue = resultMap.get(key);
             oldValue.markedFilled = textarea.hasClass('marked-filled');
             resultMap.set(key, oldValue);
-            if (textarea.hasClass('marked-filled')) {
-                completedCount++;
-            }
-            else completedCount--;
             saveAllToLocalStorage();
         }
         markFilledButton.click(markAsFilledButtonFunctionality);
+        //! update stats
+        textarea.on('input', updateStats);
+        //! auto-scroll
+        textarea.on('focus', autoScroll);
         //! textarea check if is filled
         textarea.on('blur', function() {
             if (
@@ -300,10 +319,17 @@ class EntryRow extends TableRow {
                 && valueOriginal != textarea.val()
             ) {
                 textarea.addClass('filled');
+                let oldValue = resultMap.get(key);
+                oldValue.completed = true;
+                resultMap.set(key, oldValue);
+                saveAllToLocalStorage();
             }
         });
         textarea.on('input', function() {
             textarea.removeClass('filled');
+            let oldValue = resultMap.get(key);
+            oldValue.completed = false;
+            resultMap.set(key, oldValue);
         })
         //! textarea bind keyboard shortcuts
         const globalThis = this;
@@ -345,6 +371,15 @@ class EntryRow extends TableRow {
     focusNextRow() {
         tableEntryRows[this.num].textarea.focus();
     }
+}
+function updateStats() {
+    let completedCount = $('textarea.filled, textarea.marked-filled').length;
+    let missingCount = totalCount - completedCount;
+    $('#stats-total').html(totalCount);
+    $('#stats-filled').html(completedCount);
+    $('#stats-empty').html(missingCount);
+    $('#percent-filled').html(((completedCount/totalCount)*100).round(2)+'%');
+    $('#percent-empty').html((missingCount/totalCount*100).round(2)+'%');
 }
 
 //! ==============================================================
@@ -391,7 +426,7 @@ $('body,html').click(function(e){
     }
 });
 //! functions for generating downloadable code
-function generateLocalizedFileJSON() {
+function generateLocalizedFileJSON(isJsonc = false) {
     const rows = $('.results-table tbody tr');
 
     const retArray = [ '{' ];
@@ -402,6 +437,10 @@ function generateLocalizedFileJSON() {
             continue;
         }
         if (row.hasClass('comment-row')) {
+            if (isJsonc) {
+                retArray.push(`    // ${row.children('th').html()}`);
+                continue;
+            }
             retArray.push(`    "${'_comment'}": "${row.children('th').html()}",`);
             continue;
         }
@@ -466,6 +505,14 @@ $('#download-json').click(function() {
         extension: 'json',
     });
 });
+$('#download-jsonc').click(function() {
+    let text = generateLocalizedFileJSON(true);
+    downloadFile(text, {
+        name: 'localized_file',
+        type: 'application/json',
+        extension: 'jsonc',
+    });
+});
 $('#download-lang').click(function() {
     let text = generateLocalizedFileLANG();
     downloadFile(text, {
@@ -476,6 +523,9 @@ $('#download-lang').click(function() {
 });
 $('#download-copy-json').click(function () {
     copyToClipboard(generateLocalizedFileJSON());
+});
+$('#download-copy-jsonc').click(function () {
+    copyToClipboard(generateLocalizedFileJSON(true));
 });
 $('#download-copy-lang').click(function () {
     copyToClipboard(generateLocalizedFileLANG());

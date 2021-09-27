@@ -388,7 +388,7 @@ section.results {
     justify-content: space-between;
 }
 .toolbar .stats td.data span {
-    margin-left: 0.3rem;
+    margin-left: 1rem;
 }
 /*! download buttons */
 .downloads {

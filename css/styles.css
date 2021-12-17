@@ -162,13 +162,16 @@ section.uploads {
 /*! upload buttons */
 .uploads .content {
     display: flex;
+    flex-direction: column;
     margin-top: 1rem;
 }
-.uploads .content div {
-    width: 50%;
+.uploads .content > div {
+    width: 100%;
     display: flex;
-    flex-direction: column;
     justify-content: space-between;
+}
+.uploads .content > div > div {
+    margin-top: 0.8rem;
 }
 .uploads .content label {
     display: flex;
@@ -185,8 +188,8 @@ section.uploads {
 }
 /*! options */
 .uploads .supported-types {
-    margin-top: 0.8rem;
     width: 100%;
+    display: flex;
 }
 .uploads .supported-types h4 {
     font-weight: 500;

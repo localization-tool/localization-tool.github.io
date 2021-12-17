@@ -433,7 +433,7 @@ function generateLocalizedFileJSON(isJsonc = false) {
         }
         if (row.hasClass('entry-row')) {
             let value = row.find('textarea').is('.filled,.marked-filled') ? row.find('textarea').val() : row.find('.entry-original > span').html();
-            retArray.push(`    "${row.find('.entry-original > code').html().replace(/​/g, '')}": "${value}",`);
+            retArray.push(`    "${row.find('.entry-original > code').html().replace(/​/g, '')}": "${value.replace(/"/g, '\\"')}",`);
             continue;
         }
     }

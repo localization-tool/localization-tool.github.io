@@ -18,20 +18,29 @@
                 <h1 class="center">Upload Files</h1>
                 <div class="content">
                     <div>
-                        <label for="upload-native">Original language file</label>
-                        <input type="file" id="upload-native">
+                        <div>
+                            <label for="upload-native">Original language file</label>
+                            <input type="file" id="upload-native">
+                        </div>
+                        <div>
+                            <label for="upload-translated">Partially translated file<span>only if applicable</span></label>
+                            <input type="file" id="upload-translated">
+                        </div>
                     </div>
                     <div>
-                        <label for="upload-translated">Partially translated file<span>only if applicable</span></label>
-                        <input type="file" id="upload-translated">
+                        <div class="supported-types">
+                            <h4>Supported file types</h4>
+                            <ul>
+                                <li><code>.json</code></li>
+                                <li><code>.jsonc</code></li>
+                                <li><code>.lang</code></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <label for="upload-project">Localization project file<span>.localization-project</span></label>
+                            <input type="file" id="upload-project">
+                        </div>
                     </div>
-                </div>
-                <div class="supported-types">
-                    <h4>Supported file types</h4>
-                    <ul>
-                        <li><code>.json</code></li>
-                        <li><code>.lang</code></li>
-                    </ul>
                 </div>
                 <div class="buttons">
                     <button class="generic-container button-general" id="clear-uploads">Clear Files</button>

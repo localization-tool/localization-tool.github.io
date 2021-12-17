@@ -153,15 +153,7 @@ $('#upload-native').change(function(e) {
         let fileExtension = checkFileExtension(firstFile);
         nativeEntries.splice(0, nativeEntries.length);
         nativeEntriesMap.clear();
-        if (fileExtension == 'json') {
-            loadObjectEntries('json', nativeEntries, nativeEntriesMap, lines);
-        }
-        else if (fileExtension == 'jsonc') {
-            loadObjectEntries('jsonc', nativeEntries, nativeEntriesMap, lines);
-        }
-        else if (fileExtension == 'lang') {
-            loadObjectEntries('lang', nativeEntries, nativeEntriesMap, lines);
-        }
+        loadObjectEntries(fileExtension, nativeEntries, nativeEntriesMap, lines);
     }
     reader.readAsText(e.target.files[0]);
 });
@@ -174,12 +166,7 @@ $('#upload-translated').change(function(e) {
         let fileExtension = checkFileExtension(firstFile);
         translatedEntries.splice(0, translatedEntries.length);
         translatedEntriesMap.clear();
-        if (fileExtension == 'json') {
-            loadObjectEntriesJSON(translatedEntries, translatedEntriesMap, lines);
-        }
-        else if (fileExtension == 'lang') {
-            loadObjectEntriesLANG(translatedEntries, translatedEntriesMap, lines);
-        }
+        loadObjectEntries(fileExtension, translatedEntries, translatedEntriesMap, lines);
     }
     reader.readAsText(e.target.files[0]);
 });

@@ -582,7 +582,6 @@ const datatypeRegexes = {
     txt: [ /,$/g, '' ],
 }
 //! add functionality to buttons
-
 $('#download-file').click(function() {
     const filetype = $('#export-format').val();
     const includeComments = $('#export-comments').is(':checked');
@@ -606,4 +605,23 @@ $('#copy-code').click(function() {
     let text = generateLocalizedFile(filetype, indentsize, includeComments, includeEmptyRows);
     text = text.replace(datatypeRegex[0], datatypeRegex[1]);
     copyToClipboard(text);
+});
+//! show/hide button
+$('.close').click(function () {
+    let parentEl = $(this).parent().parent()
+    parentEl.css({
+        opacity: 0,
+    });
+    setTimeout(() => {
+        parentEl.addClass('hidden');
+    }, 400);
+});
+$('#export').click(function () {
+    let parentEl = $('.exportbox-container')
+        parentEl.removeClass('hidden');
+    setTimeout(() => {
+        parentEl.css({
+            opacity: 1,
+        });
+    }, 10);
 });

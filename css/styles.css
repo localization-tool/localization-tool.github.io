@@ -143,7 +143,10 @@ button.red.red:active {
     color: var(--red);
     background-color: rgba(var(--red-rgb), 0.2);
 }
-
+/*! opacity animation */
+.opacity-anim {
+    transition: 0.2s opacity ease;
+}
 /*  
 !==============================================================
 !        Uploads Section
@@ -462,7 +465,7 @@ section.results {
     position: fixed;
     width: 100%;
     height: 100vh;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.6);
 }
 .exportbox {
     position: absolute;
@@ -482,6 +485,33 @@ section.results {
 }
 .exportbox > hr {
     border-color: var(--acc-vl);
+}
+.exportbox > .close {
+    width: 16px;
+    height: 16px;
+    align-self: flex-end;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    position: relative;
+}
+.exportbox > .close::before {
+    content: '';
+    width: 16px;
+    height: 1px;
+    position: absolute;
+    border-bottom: 1px solid var(--acc-vl);
+    transform: rotate(45deg);
+    left: 0;
+}
+.exportbox > .close::after {
+    content: '';
+    width: 16px;
+    height: 1px;
+    position: absolute;
+    border-bottom: 1px solid var(--acc-vl);
+    transform: rotate(-45deg);
+    left: 0;
 }
 .exportbox .form {
     display: flex;

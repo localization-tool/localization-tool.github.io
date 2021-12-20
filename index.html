@@ -120,17 +120,50 @@
             </div>
             <hr>
             <div class="downloads">
-                <button id="download-json" class="generic-container button-general">Download JSON</button>
-                <button id="dropdown-toggle" class="generic-container button-general"><i class="fas fa-caret-down"></i></button>
-                <div class="dropdown-menu">
-                    <button id="download-jsonc">Download JSONC</button>
-                    <button id="download-lang">Download LANG</button>
-                    <button id="download-copy-json">Copy JSON</button>
-                    <button id="download-copy-jsonc">Copy JSONC</button>
-                    <button id="download-copy-lang">Copy LANG</button>
-                </div>
+                <button id="export" class="generic-container button-general">Export translations</button>
             </div>
         </section>
     </main>
+    <div class="exportbox-container">
+        <div class="exportbox">
+            <div class="form">
+                <div class="formrow">
+                    <span class="unselectable">Code format</span>
+                    <select id="export-format" class="generic-container">
+                        <option value="json">json</option>
+                        <option value="lang">lang</option>
+                        <option value="txt">plain text</option>
+                    </select>
+                </div>
+                <div class="formrow">
+                    <span class="unselectable">Export comments?</span>
+                    <input type="checkbox" id="export-comments" class="hidden" checked>
+                    <label for="export-comments" class="checkbox-label generic-container" tabindex="0"></label>
+                </div>
+                <div class="formrow">
+                    <span class="unselectable">Export empty lines?</span>
+                    <input type="checkbox" id="export-empty-lines" class="hidden" checked>
+                    <label for="export-empty-lines" class="checkbox-label generic-container" tabindex="0"></label>
+                </div>
+                <div class="formrow">
+                    <span class="unselectable">Indentation size</span>
+                    <div class="custom-number-input">
+                        <button class="minus generic-container unselectable">-</button>
+                        <input type="text" id="export-indentation" class="generic-container unselectable" value="4">
+                        <button class="plus generic-container unselectable">+</button>
+                    </div>
+                </div>
+                <div class="formrow">
+                    <span class="unselectable">File name</span>
+                    <input type="text" id="export-filename" class="generic-container unselectable" value="localized_file" spellcheck="false">
+                </div>
+            </div>
+            <hr>
+            <div class="output-buttons">
+                <button id="download-file" class="generic-container button-general">Download File</button>
+                <button id="copy-code" class="generic-container button-general">Copy Code</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

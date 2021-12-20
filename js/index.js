@@ -82,6 +82,7 @@ let translatedEntriesMap = new Map();
 let resultMap = new Map();
 let tableEntryRows = [];
 let totalCount = 0;
+let indentationSizeInFile;
 
 let extensionSettings = {
     json: {
@@ -139,8 +140,11 @@ function loadObjectEntries(extension, loadTo, loadToMap, lines) {
     }
     resultMap = new Map([ ...nativeEntriesMap, ...translatedEntriesMap ]);
 }
-
-
+function checkIndentSize(lines) {
+    for (const line of lines) {
+        if (line.match(/( *)["a-z]/i)) return line.match(/( *)["a-z]/i)[1].length;
+    }
+}
 function checkFileExtension(file) {
     return file.name.match(/\.([^ \.]+)$/)?.[1];
 }
@@ -153,6 +157,7 @@ $('#upload-native').change(function(e) {
         let fileExtension = checkFileExtension(firstFile);
         nativeEntries.splice(0, nativeEntries.length);
         nativeEntriesMap.clear();
+        indentationSizeInFile = checkIndentSize(lines);
         loadObjectEntries(fileExtension, nativeEntries, nativeEntriesMap, lines);
     }
     reader.readAsText(e.target.files[0]);
@@ -217,6 +222,7 @@ function loadTable() {
     setTimeout(() => {
         updateStats();
     }, 10);
+    $('#export-indentation').val(indentationSizeInFile);
 }
 $('#load-uploads').click(function() {
     if (!$('#upload-native').val()) return;
@@ -359,6 +365,15 @@ class EntryRow extends TableRow {
         tableEntryRows[this.num].textarea.focus();
     }
 }
+
+function resetStats() {
+    totalCount = 0;
+    $('#stats-total').html('?');
+    $('#stats-filled').html('?');
+    $('#stats-empty').html('?');
+    $('#percent-filled').html('');
+    $('#percent-empty').html('');
+}
 function updateStats() {
     let completedCount = $('textarea.filled, textarea.marked-filled').length;
     let missingCount = totalCount - completedCount;
@@ -378,6 +393,7 @@ function saveAllToLocalStorage() {
     localStorage.setItem('nativeEntriesMap', JSON.stringify(Array.from(nativeEntriesMap.entries())));
     localStorage.setItem('translatedEntriesMap', JSON.stringify(Array.from(translatedEntriesMap.entries())));
     localStorage.setItem('resultMap', JSON.stringify(Array.from(resultMap.entries())));
+    localStorage.setItem('indentationSizeInFile', indentationSizeInFile);
 }
 function loadAllFromLocalStorage() {
     if (localStorage.getItem('isSaved')) {
@@ -385,6 +401,7 @@ function loadAllFromLocalStorage() {
         nativeEntriesMap = new Map(JSON.parse(localStorage.getItem('nativeEntriesMap')));
         translatedEntriesMap = new Map(JSON.parse(localStorage.getItem('translatedEntriesMap')));
         resultMap = new Map(JSON.parse(localStorage.getItem('resultMap')));
+        indentationSizeInFile = localStorage.getItem('indentationSizeInFile');
         loadTable();
     }
 }
@@ -413,44 +430,46 @@ $('body,html').click(function(e){
     }
 });
 //! functions for generating downloadable code
-function generateLocalizedFileJSON(isJsonc = false) {
+function generateLocalizedFile(filetype, indentsize, comments = true, emptylines = true) {
+    if (filetype == 'json') return generateLocalizedFileJSON(indentsize, comments, emptylines);
+    if (filetype == 'lang') return generateLocalizedFileLANG(comments, emptylines);
+    if (filetype == 'txt') return generateLocalizedFileTXT(comments, emptylines);
+}
+function generateLocalizedFileJSON(indentsize, comments, emptylines) {
     const rows = $('.results-table tbody tr');
+    const indent = ' '.repeat(indentsize);
 
     const retArray = [ '{' ];
     for (let row of rows) {
         row = $(row);
-        if (row.hasClass('gap-row')) {
-            retArray.push('    ');
+        if (emptylines && row.hasClass('gap-row')) {
+            retArray.push(indent);
             continue;
         }
-        if (row.hasClass('comment-row')) {
-            if (isJsonc) {
-                retArray.push(`    // ${row.children('th').html()}`);
-                continue;
-            }
-            retArray.push(`    "${'_comment'}": "${row.children('th').html()}",`);
+        if (comments && row.hasClass('comment-row')) {
+            retArray.push(`${indent}"${'_comment'}": "${row.children('th').html()}",`);
             continue;
         }
         if (row.hasClass('entry-row')) {
             let value = row.find('textarea').is('.filled,.marked-filled') ? row.find('textarea').val() : row.find('.entry-original > span').html();
-            retArray.push(`    "${row.find('.entry-original > code').html().replace(/​/g, '')}": "${value.replace(/"/g, '\\"')}",`);
+            retArray.push(`${indent}"${row.find('.entry-original > code').html().replace(/​/g, '')}": "${value.replace(/"/g, '\\"')}",`);
             continue;
         }
     }
     retArray.push('}');
     return retArray.join('$$NEWLINE_HERE$$').replace(/^(.+),/, '$1').replace(/\$\$NEWLINE_HERE\$\$/g, '\n');
 }
-function generateLocalizedFileLANG() {
+function generateLocalizedFileLANG(comments, emptylines) {
     const rows = $('.results-table tbody tr');
 
     const retArray = [ '{' ];
     for (let row of rows) {
         row = $(row);
-        if (row.hasClass('gap-row')) {
+        if (emptylines && row.hasClass('gap-row')) {
             retArray.push('');
             continue;
         }
-        if (row.hasClass('comment-row')) {
+        if (comments && row.hasClass('comment-row')) {
             retArray.push(`# ${row.children('th').html()}`);
             continue;
         }
@@ -463,6 +482,75 @@ function generateLocalizedFileLANG() {
     retArray.push('}');
     return retArray.join('$$NEWLINE_HERE$$').replace(/^(.+),/, '$1').replace(/\$\$NEWLINE_HERE\$\$/g, '\n');
 }
+function generateLocalizedFileTXT(comments, emptylines) {
+    const rows = $('.results-table tbody tr');
+
+    const retArray = [];
+    for (let row of rows) {
+        row = $(row);
+        if (emptylines && row.hasClass('gap-row')) {
+            retArray.push('');
+            continue;
+        }
+        if (comments && row.hasClass('comment-row')) {
+            retArray.push(`# ${row.children('th').html()}`);
+            continue;
+        }
+        if (row.hasClass('entry-row')) {
+            let value = row.find('textarea').is('.filled,.marked-filled') ? row.find('textarea').val() : row.find('.entry-original > span').html();
+            retArray.push(`${row.find('.entry-original > code').html().replace(/​/g, '')}=${value}`);
+            continue;
+        }
+    }
+    return retArray.join('$$NEWLINE_HERE$$').replace(/^(.+),/, '$1').replace(/\$\$NEWLINE_HERE\$\$/g, '\n');
+}
+//! export form components
+function ensureProperNumberInInput(input, e, min = -Infinity, max = Infinity) {
+    const inputRegex = [
+        /[^0-9]/,
+        [ /^0.+/, '0' ],
+    ]
+    input = $(input);
+    let val = input.val();
+    if (Number(val) > max) {
+        input.val(max);
+        return;
+    }
+    if (Number(val) < min) {
+        input.val(min);
+        return;
+    }
+    let caretPosition = e.target.selectionStart; 
+    inputRegex.forEach(patternArr => {
+        if (!Array.isArray(patternArr)) patternArr = [patternArr, ''];
+        let safetySwitch = 0;
+        while (val.match(patternArr[0])) {
+            if (safetySwitch > 99) throw 'Executing of regex patterns on input took too long, action aborted';
+            let lengthBefore = val.length;
+            val = val.replace(patternArr[0], patternArr[1]);
+            input.val(val);
+            caretPosition -= lengthBefore - val.length;
+            if (patternArr[2]) caretPosition+= patternArr[2];
+            safetySwitch++;
+        }
+    });
+    input.val(val);
+    input[0].setSelectionRange(caretPosition, caretPosition);
+}
+$('.custom-number-input > input').on('input', function(event) {
+    ensureProperNumberInInput(this, event, 0, 8);
+});
+$('.custom-number-input > .minus').click(function() {
+    const input = $(this).next();
+    input.val(Number(input.val())-1);
+    input.trigger('input');
+});
+$('.custom-number-input > .plus').click(function() {
+    const input = $(this).prev();
+    input.val(Number(input.val())+1);
+    input.trigger('input');
+});
+//! export outputs
 function copyToClipboard(str) {
     let el = document.createElement('textarea');
     el.value = str;
@@ -483,37 +571,39 @@ function downloadFile(contents, { name, type, extension }) {
     aEl[0].click();
     aEl.remove();
 }
+const datatypes = {
+    json: 'application/json',
+    lang: 'text/plain',
+    txt: 'text/plain',
+}
+const datatypeRegexes = {
+    json: null,
+    lang: [ /,(.)/g, '\\,$1' ],
+    txt: [ /,$/g, '' ],
+}
 //! add functionality to buttons
-$('#download-json').click(function() {
-    let text = generateLocalizedFileJSON();
+
+$('#download-file').click(function() {
+    const filetype = $('#export-format').val();
+    const includeComments = $('#export-comments').is(':checked');
+    const includeEmptyRows = $('#export-empty-lines').is(':checked');
+    const indentsize = $('#export-indentation').val();
+    const filename = $('#export-filename').val();
+    const datatypeRegex = datatypeRegexes[filetype];
+    let text = generateLocalizedFile(filetype, indentsize, includeComments, includeEmptyRows);
+    if (datatypeRegex) text = text.replace(datatypeRegex[0], datatypeRegex[1]);
     downloadFile(text, {
-        name: 'localized_file',
-        type: 'application/json',
-        extension: 'json',
+        name: filename,
+        type: datatypes[filetype],
+        extension: filetype,
     });
 });
-$('#download-jsonc').click(function() {
-    let text = generateLocalizedFileJSON(true);
-    downloadFile(text, {
-        name: 'localized_file',
-        type: 'application/json',
-        extension: 'jsonc',
-    });
-});
-$('#download-lang').click(function() {
-    let text = generateLocalizedFileLANG();
-    downloadFile(text, {
-        name: 'localized_file',
-        type: 'text/plain',
-        extension: 'lang',
-    });
-});
-$('#download-copy-json').click(function () {
-    copyToClipboard(generateLocalizedFileJSON());
-});
-$('#download-copy-jsonc').click(function () {
-    copyToClipboard(generateLocalizedFileJSON(true));
-});
-$('#download-copy-lang').click(function () {
-    copyToClipboard(generateLocalizedFileLANG());
+$('#copy-code').click(function() {
+    const filetype = $('#export-format').val();
+    const includeComments = $('#export-comments').is(':checked');
+    const includeEmptyRows = $('#export-empty-lines').is(':checked');
+    const indentsize = $('#export-indentation').val();
+    let text = generateLocalizedFile(filetype, indentsize, includeComments, includeEmptyRows);
+    text = text.replace(datatypeRegex[0], datatypeRegex[1]);
+    copyToClipboard(text);
 });

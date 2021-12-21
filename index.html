@@ -67,6 +67,14 @@
                             <kbd>Ctrl</kbd>+<kbd>D</kbd>
                         </td>
                     </tr>
+                    <tr>
+                        <td>
+                            Use quick translation:
+                        </td>
+                        <td>
+                            <kbd>Ctrl</kbd>+<kbd>Q</kbd>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </section>
@@ -119,14 +127,18 @@
                 </table>
             </div>
             <hr>
+            <div>
+                <button id="quick-translations" class="generic-container button-general">View quick translations</button>
+            </div>
+            <hr>
             <div class="downloads">
                 <button id="export" class="generic-container button-general">Export translations</button>
             </div>
         </section>
     </main>
-    <div class="exportbox-container opacity-anim hidden">
-        <div class="exportbox">
-            <button class="close"></button>
+    <div class="darkbox-container opacity-anim hidden" id="exportbox">
+        <div class="darkbox">
+            <button class="close plus-icon rotated"></button>
             <div class="form">
                 <div class="formrow">
                     <span class="unselectable">Code format</span>
@@ -163,6 +175,38 @@
             <div class="output-buttons">
                 <button id="download-file" class="generic-container button-general">Download File</button>
                 <button id="copy-code" class="generic-container button-general">Copy Code</button>
+            </div>
+        </div>
+    </div>
+    <div class="darkbox-container opacity-anim hidden" id="qtbox"> <!--hidden-->
+        <div class="darkbox">
+            <button class="close plus-icon rotated"></button>
+            <h2>Quick Translations</h2>
+            <div class="QT-list">
+                <button id="add-QT" class="generic-container button-general ghost">
+                    <div class="plus-icon"></div>
+                    <span>Add new quick translation</span>
+                </button>
+            </div>
+            <hr>
+        </div>
+        <div class="darkbox hidden" id="qtbox-add">
+            <button class="close-self plus-icon rotated"></button>
+            <h3>Create quick translation</h3>
+            <div class="form wide">
+                <div class="formrow">
+                    <span>
+                        Native language term
+                        <small>(regex)</small>
+                    </span>
+                    <input type="text" id="qt-native-regex" class="generic-container">
+                </div>
+                <div class="formrow">
+                    <span>Translation</span>
+                    <input type="text" id="qt-translation" class="generic-container">
+                </div>
+                <div class="formrow">
+                </div>
             </div>
         </div>
     </div>

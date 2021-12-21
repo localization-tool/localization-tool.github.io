@@ -88,20 +88,15 @@ let extensionSettings = {
     json: {
         input: {
             comment: /"_.*?":\s*"(.*)"/,
-            entry: /"(.+?)":\s*"(.*)"/,
-        },
-    },
-    jsonc: {
-        input: {
-            comment: /"_.*?":\s*"(.*)"/,
             comment2: /^\s*\/\/\s*(.+)/,
+            comment3: /^\s*(?:# ?)+\s*(.+)(?: ?# ?)*/,
             entry: /"(.+?)":\s*"(.*)"/,
         },
     },
     lang: {
         input: {
             comment: /^#\s*(.+)/,
-            entry: /^\s*(.+?)=(.*)$/,
+            entry: /^\s*(.+?)=(.*),?$/,
         },
     },
 }
@@ -118,13 +113,12 @@ function loadObjectEntries(extension, loadTo, loadToMap, lines) {
         //line is a space
         if (!line.trim()) {
             let lastEntryType = Array.last(loadTo)?.type;
-            if (lastEntryType == "SPACE" || lastEntryType == "COMMENT") continue;
             loadTo.push({ type: "SPACE" });
             continue;
         }
         //line is a comment
-        if (line.match(currentSettings.input.comment) || (currentSettings.input.comment2 && line.match(currentSettings.input.comment2))) {
-            let value = line.match(currentSettings.input.comment)?.[1] ?? line.match(currentSettings.input.comment2)[1];
+        if (line.match(currentSettings.input.comment) || (currentSettings.input.comment2 && line.match(currentSettings.input.comment2)) || (currentSettings.input.comment3 && line.match(currentSettings.input.comment3))) {
+            let value = line.match(currentSettings.input.comment)?.[1] ?? line.match(currentSettings.input.comment2)?.[1] ?? line.match(currentSettings.input.comment3)[1];
             let lastEntryType = Array.last(loadTo)?.type;
             if (lastEntryType != "SPACE") loadTo.push({ type: "SPACE" });
             loadTo.push({ type: "COMMENT", value });
@@ -420,16 +414,6 @@ $('#go-to-btn').click(function() {
 //! ==============================================================
 //!         downloading code
 //! ==============================================================
-$('#dropdown-toggle').click(function(e){
-    $(this).next().toggleClass('active');
-    e.stopPropagation();
-});
-$('body,html').click(function(e){
-    if (!$('#dropdown-toggle').next().is(e.target) && $('#dropdown-toggle').next().has(e.target).length === 0) {
-        $('#dropdown-toggle').next().removeClass('active');
-    }
-});
-//! functions for generating downloadable code
 function generateLocalizedFile(filetype, indentsize, comments = true, emptylines = true) {
     if (filetype == 'json') return generateLocalizedFileJSON(indentsize, comments, emptylines);
     if (filetype == 'lang') return generateLocalizedFileLANG(comments, emptylines);
@@ -451,7 +435,8 @@ function generateLocalizedFileJSON(indentsize, comments, emptylines) {
             continue;
         }
         if (row.hasClass('entry-row')) {
-            let value = row.find('textarea').is('.filled,.marked-filled') ? row.find('textarea').val() : row.find('.entry-original > span').html();
+            let value = row.find('textarea.filled, textarea.marked-filled')?.val() || row.find('.entry-original > span').html();
+            value.replace('\n', '\\\\n');
             retArray.push(`${indent}"${row.find('.entry-original > code').html().replace(/​/g, '')}": "${value.replace(/"/g, '\\"')}",`);
             continue;
         }
@@ -474,8 +459,9 @@ function generateLocalizedFileLANG(comments, emptylines) {
             continue;
         }
         if (row.hasClass('entry-row')) {
-            let value = row.find('textarea').is('.filled,.marked-filled') ? row.find('textarea').val() : row.find('.entry-original > span').html();
-            retArray.push(`${row.find('.entry-original > code').html().replace(/​/g, '')}=${value},`);
+            let value = row.find('textarea.filled, textarea.marked-filled')?.val() || row.find('.entry-original > span').html();
+            value.replace('\n', '\\\\n');
+            retArray.push(`${row.find('.entry-original > code').html().replace(/​/g, '')}=${value}`);
             continue;
         }
     }
@@ -497,7 +483,8 @@ function generateLocalizedFileTXT(comments, emptylines) {
             continue;
         }
         if (row.hasClass('entry-row')) {
-            let value = row.find('textarea').is('.filled,.marked-filled') ? row.find('textarea').val() : row.find('.entry-original > span').html();
+            let value = row.find('textarea.filled, textarea.marked-filled')?.val() || row.find('.entry-original > span').html();
+            value.replace('\n', '\\\\n');
             retArray.push(`${row.find('.entry-original > code').html().replace(/​/g, '')}=${value}`);
             continue;
         }
@@ -602,13 +589,23 @@ $('#copy-code').click(function() {
     const includeComments = $('#export-comments').is(':checked');
     const includeEmptyRows = $('#export-empty-lines').is(':checked');
     const indentsize = $('#export-indentation').val();
+    const datatypeRegex = datatypeRegexes[filetype];
     let text = generateLocalizedFile(filetype, indentsize, includeComments, includeEmptyRows);
-    text = text.replace(datatypeRegex[0], datatypeRegex[1]);
+    if (datatypeRegex) text = text.replace(datatypeRegex[0], datatypeRegex[1]);
     copyToClipboard(text);
 });
 //! show/hide button
 $('.close').click(function () {
-    let parentEl = $(this).parent().parent()
+    let parentEl = $(this).parent().parent();
+    parentEl.css({
+        opacity: 0,
+    });
+    setTimeout(() => {
+        parentEl.addClass('hidden');
+    }, 400);
+});
+$('.close-self').click(function () {
+    let parentEl = $(this).parent();
     parentEl.css({
         opacity: 0,
     });
@@ -617,7 +614,25 @@ $('.close').click(function () {
     }, 400);
 });
 $('#export').click(function () {
-    let parentEl = $('.exportbox-container')
+    let parentEl = $('#exportbox');
+        parentEl.removeClass('hidden');
+    setTimeout(() => {
+        parentEl.css({
+            opacity: 1,
+        });
+    }, 10);
+});
+$('#quick-translations').click(function () {
+    let parentEl = $('#qtbox');
+        parentEl.removeClass('hidden');
+    setTimeout(() => {
+        parentEl.css({
+            opacity: 1,
+        });
+    }, 10);
+});
+$('#add-QT').click(function () {
+    let parentEl = $('#qtbox-add');
         parentEl.removeClass('hidden');
     setTimeout(() => {
         parentEl.css({
